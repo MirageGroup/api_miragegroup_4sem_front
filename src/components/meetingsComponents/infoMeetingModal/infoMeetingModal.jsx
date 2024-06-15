@@ -63,7 +63,7 @@ const InfoMeetingModal = React.forwardRef(({ id, ataUrl, title, description, dat
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await axios.post(`http://localhost:8080/meeting/${meetingId}/uploadata`, formData, {
+            const response = await axios.post(`http://${process.env.REACT_APP_BACKEND_URL}/meeting/${meetingId}/uploadata`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
