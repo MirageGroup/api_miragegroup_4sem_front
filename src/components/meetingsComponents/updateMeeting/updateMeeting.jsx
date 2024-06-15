@@ -15,6 +15,7 @@ import DateTimeFormUpdate from "../NewMeeting/formComponents/DateTimeFormUpdate"
 import ExternalInput from "../NewMeeting/formComponents/ExternalInput";
 
 export default function UpdateMeeting() {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { meetingId } = useParams();
   const accessToken = localStorage.getItem("accessToken");
   const [meetingData, setMeetingData] = useState({
@@ -36,10 +37,11 @@ export default function UpdateMeeting() {
   const [updatingMeeting, setUpdatingMeeting] = useState(false);
 
   const fetchSalas = async () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
       const [responseSalasFisicas, responseSalasVirtuais] = await Promise.all([
-        axios.get("http://localhost:8080/physicalRoom/get"),
-        axios.get("http://localhost:8080/virtualRoom/get"),
+        axios.get(`${backendUrl}/physicalRoom/get`),
+        axios.get(`${backendUrl}/virtualRoom/get`),
       ]);
 
       const salas = [
@@ -60,8 +62,9 @@ export default function UpdateMeeting() {
   };
 
   const fetchUsers = async () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
-      const response = await axios.get("http://localhost:8080/user/fetchall");
+      const response = await axios.get(`${backendUrl}/user/fetchall`);
       setUsers(response.data);
     } catch (error) {
       console.error(error);
@@ -115,9 +118,10 @@ export default function UpdateMeeting() {
       guests: meetingData.guests,
     };
     console.log("requestData: ", requestData);
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
       await axios.patch(
-        `http://localhost:8080/meeting/update/${meetingId}`,
+        `${backendUrl}/meeting/update/${meetingId}`,
         requestData,
         { withCredentials: true }
       );
@@ -150,7 +154,7 @@ export default function UpdateMeeting() {
     const fetchMeetingData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/meeting/get/${meetingId}`
+          `${backendUrl}/meeting/get/${meetingId}`
         );
         const {
           participants,

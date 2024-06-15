@@ -19,15 +19,21 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
+    console.log(backendUrl)
+
+
     const handleLogin = async () => {
         const data = {
             email: email,
             password: password
         }
         try {
-            axios.post('http://localhost:8080/user/login', data, { withCredentials: true }).then((response) => {
+
+            
+            axios.post(`${backendUrl}/user/login`, data, { withCredentials: true }).then((response) => {
                 setToken(response.data.token)
-                window.location.href = 'http://localhost:8080/meeting/authorize';
+                window.location.href = `${backendUrl}/meeting/authorize`;
             })
         } catch (error) {
             console.error(error)

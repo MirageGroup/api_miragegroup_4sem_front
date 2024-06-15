@@ -47,10 +47,11 @@ const formatRequestData = (meetingData) => {
 };
 
 const fetchSalas = async (handleChange) => {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   try {
     const [responseSalasFisicas, responseSalasVirtuais] = await Promise.all([
-      axios.get("http://localhost:8080/physicalRoom/get"),
-      axios.get("http://localhost:8080/virtualRoom/get"),
+      axios.get(`${backendUrl}/physicalRoom/get`),
+      axios.get(`${backendUrl}/virtualRoom/get`),
     ]);
 
     const salas = [
@@ -68,8 +69,9 @@ const fetchSalas = async (handleChange) => {
 };
 
 const fetchUsers = async (setUsers) => {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   try {
-    const response = await axios.get("http://localhost:8080/user/fetchall");
+    const response = await axios.get(`${backendUrl}/user/fetchall`);
     setUsers(response.data);
   } catch (error) {
     console.error(error);
@@ -87,16 +89,17 @@ const handleSubmit = async (event, meetingData, setCreatingMeeting, toast) => {
 
   const requestData = formatRequestData(meetingData);
   console.log("requestData", requestData);
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   try {
     if (requestData.meetingType == 3) {
       const response = await axios.post(
-        "http://localhost:8080/meeting/create-meeting",
+        `${backendUrl}/meeting/create-meeting`,
         requestData,
         { withCredentials: true }
       );
       requestData.join_url = response.data.join_url;
     }
-    await axios.post("http://localhost:8080/meeting/create", requestData, {
+    await axios.post(`${backendUrl}/meeting/create`, requestData, {
       withCredentials: true,
     });
     toast.success("Reunião criada com sucesso", {
@@ -172,11 +175,12 @@ export default function NewMeeting() {
 
   const checkAvailableRooms = async (meetingData) => {
     const requestData = formatRequestData(meetingData);
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
       let availableRooms;
       if (requestData.meetingType == 1) {
         const response = await axios.post(
-          "http://localhost:8080/physicalRoom/checkAvailability",
+          `${backendUrl}/physicalRoom/checkAvailability`,
           requestData,
           {
             headers: {
@@ -188,7 +192,7 @@ export default function NewMeeting() {
       }
       if (requestData.meetingType == 3) {
         const response = await axios.post(
-          "http://localhost:8080/virtualRoom/checkAvailability",
+          `${backendUrl}/virtualRoom/checkAvailability`,
           requestData,
           {
             headers: {

@@ -8,12 +8,13 @@ export default function RoomList() {
   const [salas, setSalas] = useState([]);
   const [tipoReuniao, setTipoReuniao] = useState("Todos");
   const navigate = useNavigate();
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
     async function fetchSalas() {
       try {
-        const responseSalasFisicas = await axios.get("http://localhost:8080/physicalRoom/get");
-        const responseSalasVirtuais = await axios.get("http://localhost:8080/virtualRoom/get");
+        const responseSalasFisicas = await axios.get(`${backendUrl}/physicalRoom/get`);
+        const responseSalasVirtuais = await axios.get(`${backendUrl}/virtualRoom/get`);
 
         const responseSalasFisicasData = responseSalasFisicas.data.map((sala) => {
           return { ...sala, type: "Física" };

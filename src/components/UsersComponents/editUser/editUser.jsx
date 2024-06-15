@@ -18,6 +18,7 @@ export default function EditUser() {
     const [password, setPassword] = useState('')
     const [role, setRole] = useState('')
     const [access, setAccess] = useState(null)
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     
     useEffect(() => {
 
@@ -27,7 +28,7 @@ export default function EditUser() {
                 id: userId
               }
             try {
-                const userResponse = await axios.get('http://localhost:8080/user/fetchall', {
+                const userResponse = await axios.get(`${backendUrl}/user/fetchall`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + localStorage.getItem('token'),
@@ -89,7 +90,7 @@ export default function EditUser() {
         }
 
         try{
-            await axios.patch("http://localhost:8080/user/update/",data,{
+            await axios.patch(`${backendUrl}/user/update/`,data,{
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + localStorage.getItem('token'),
@@ -110,7 +111,7 @@ export default function EditUser() {
         if(confirm == true){
             try{
                 const data = { id: userId }
-                await axios.delete("http://localhost:8080/user/delete", {
+                await axios.delete(`${backendUrl}/user/delete`, {
                     data: data,
                     headers: {
                         'Content-Type': 'application/json',

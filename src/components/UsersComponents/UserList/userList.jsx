@@ -5,9 +5,11 @@ import { AiFillEdit } from "react-icons/ai";
 
 export default function UserList() {
     const [data, setData] = useState([])
+    
 
     useEffect(() => {
-        axios.get("http://localhost:8080/user/fetchall").then((response) => {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL;
+        axios.get(`${backendUrl}/user/fetchall`).then((response) => {
             setData(response.data)
         })
     }, [])

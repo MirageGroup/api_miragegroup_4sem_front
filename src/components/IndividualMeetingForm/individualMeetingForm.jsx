@@ -9,6 +9,7 @@ import PageTitle from "../pageTitle/PageTitle";
 export default function IndividualMeetingForm() {
     const [availableRooms, setAvailableRooms] = useState([]);
     const [creatingMeeting, setCreatingMeeting] = useState(false);
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
     const [meetingData, setMeetingData] = useState({
         physicalRoom: null,
@@ -62,7 +63,7 @@ export default function IndividualMeetingForm() {
     const fetchSalas = async (handleChange) => {
         try {
             const [responseSalasFisicas] = await Promise.all([
-                axios.get("http://localhost:8080/physicalRoom/get"),
+                axios.get(`${backendUrl}/physicalRoom/get`),
                 // axios.get("http://localhost:8080/virtualRoom/get"),
             ]);
 
@@ -79,7 +80,7 @@ export default function IndividualMeetingForm() {
     const fetchUser = async (handleChange) => {
         const token = localStorage.getItem("token")
         try {
-            const response = await axios.get("http://localhost:8080/user/getprofile", {
+            const response = await axios.get(`${backendUrl}/user/getprofile`, {
                 headers: {
                     "Authorization": "Bearer " + token
                 }
@@ -99,10 +100,10 @@ export default function IndividualMeetingForm() {
         console.log("requestData", requestData);
         try {
             if (requestData.meetingType == 3) {
-                const response = await axios.post("http://localhost:8080/meeting/create-meeting", requestData, { withCredentials: true });
+                const response = await axios.post(`${backendUrl}/meeting/create-meeting`, requestData, { withCredentials: true });
                 requestData.join_url = response.data.join_url;
             }
-            await axios.post("http://localhost:8080/meeting/create", requestData, { withCredentials: true });
+            await axios.post(`${backendUrl}/meeting/create`, requestData, { withCredentials: true });
             toast.success("Reunião criada com sucesso", { position: "top-center", autoClose: 5000, hideProgressBar: false, closeOnClick: true, pauseOnHover: true, draggable: true, progress: undefined, theme: "dark" });
         } catch (error) {
             console.error(error);

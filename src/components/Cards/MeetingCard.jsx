@@ -9,6 +9,7 @@ import InfoMeetingModal from "../meetingsComponents/infoMeetingModal/infoMeeting
 export default function MeetingCard({ m, showInformation, showDelete, showUpdate, showJoin }) {
   const [isDeleted, setIsDeleted] = useState(false);
   const navigate = useNavigate();
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const[openModal, setOpenModal] = useState(false);
 
@@ -17,7 +18,7 @@ export default function MeetingCard({ m, showInformation, showDelete, showUpdate
       const confirm = window.confirm("Tem certeza que deseja excluir esta reunião?");
       if (confirm) {
         const data = { id: id };
-        await axios.delete(`http://localhost:8080/meeting/delete`, {
+        await axios.delete(`${backendUrl}/meeting/delete`, {
           data: data,
         });
         setIsDeleted(true);
@@ -40,6 +41,66 @@ export default function MeetingCard({ m, showInformation, showDelete, showUpdate
 
   const handleUpdate = () => {
     navigate("/updateMeeting/" + m.id);
+  };
+
+  const handleAta = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf";
+    input.onchange = (event) => handleFileChange(event.target.files[0]);
+    input.click();
+  };
+
+  const handleDownload = () => {
+    if (m.ata_url) {
+      window.location.href = m.ata_url;
+    } else {
+      toast.error("URL de ATA não disponível", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  }
+
+  const uploadAtaToBackend = async (meetingId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post(`${backendUrl}/meeting/${meetingId}/uploadata`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 200) {
+        console.log("Arquivo da ata enviado com sucesso!");
+        return true;
+      } else {
+        console.error("Erro ao enviar arquivo da ata:", response.statusText);
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro ao enviar arquivo da ata:", error);
+      return false;
+    }
+  };
+
+  const handleFileChange = async (file) => {
+    if (!file) return;
+
+    const isSuccess = await uploadAtaToBackend(m.id, file);
+    if (isSuccess) {
+      toast.success("Arquivo da ata enviado com sucesso!");
+    } else {
+      toast.error("Erro ao enviar arquivo da ata. Por favor, tente novamente.");
+    }
   };
 
   const handleJoinMeeting = () => {

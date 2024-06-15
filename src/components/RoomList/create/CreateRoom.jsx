@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { AiOutlinePlus } from "react-icons/ai";
 
 export default function NewRoom() {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [roomType, setRoomType] = useState("");
   const [roomData, setRoomData] = useState({
     name: "",
@@ -23,9 +24,9 @@ export default function NewRoom() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    let endpoint = "http://localhost:8080/physicalRoom/create";
+    let endpoint = `${backendUrl}/physicalRoom/create`;
     if (roomType === "Virtual") {
-      endpoint = "http://localhost:8080/virtualRoom/create";
+      endpoint = `${backendUrl}/virtualRoom/create`;
     }
 
     let data = {

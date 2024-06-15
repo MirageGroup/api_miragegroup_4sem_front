@@ -4,12 +4,13 @@ import { toast, ToastContainer } from "react-toastify";
 
 export default function RoomCard({ sala, showDelete }) {
   const [isDeleted, setIsDeleted] = useState(false);
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const handleDelete = async (id, type) => {
-    let endpoint = "http://localhost:8080/physicalRoom/delete";
+    let endpoint = `${backendUrl}/physicalRoom/delete`;
 
     if (type === "Virtual") {
-      endpoint = "http://localhost:8080/virtualRoom/delete";
+      endpoint = `${backendUrl}/virtualRoom/delete`;
     }
 
     try {
