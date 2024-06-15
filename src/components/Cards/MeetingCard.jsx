@@ -1,13 +1,17 @@
 import axios from "axios";
-import { format } from "date-fns";
+import { format, isBefore } from "date-fns";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ModalWrapper } from "../wrappers/modalWrapper";
+import InfoMeetingModal from "../meetingsComponents/infoMeetingModal/infoMeetingModal";
 
-export default function MeetingCard({ m, showDelete, showUpdate, showJoin, showAta, showDownloadAta }) {
+export default function MeetingCard({ m, showInformation, showDelete, showUpdate, showJoin }) {
   const [isDeleted, setIsDeleted] = useState(false);
   const navigate = useNavigate();
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  const[openModal, setOpenModal] = useState(false);
 
   const handleDelete = async (id) => {
     try {
@@ -135,7 +139,11 @@ export default function MeetingCard({ m, showDelete, showUpdate, showJoin, showA
   if (isDeleted) {
     return null;
   } else {
-    console.log(m)
+    const currentDateTime = new Date();
+    const meetingDateTime = new Date(m.beginning_time);
+    const showUpdateButton = showUpdate && isBefore(currentDateTime, meetingDateTime);
+    const showJoinButton = showJoin && isBefore(currentDateTime, meetingDateTime);
+
     return (
       <div className="flex flex-col lg:flex-row border border-gray-300 shadow-lg bg-white items-start lg:items-center p-4 px-4 justify-between gap-4 w-full lg:w-[75%]">
         <div className="flex flex-col justify-start items-start lg:justify-center gap-2 w-full lg:w-1/2">
@@ -167,7 +175,18 @@ export default function MeetingCard({ m, showDelete, showUpdate, showJoin, showA
           </div>
         </div>
         <div className="flex flex-col md:flex-row gap-2 md:gap-8 items-start md:items-center w-full md:w-1/2">
-          {showJoin && m.join_url && (
+        {showInformation && (
+            <div>
+              <button
+                className="bg-[#FED353] hover:bg-[#F6A700] transition px-4 py-2 rounded-md text-base mt-auto"
+                onClick={() => setOpenModal(true)}
+              >
+                <p>ATA</p>
+              </button>
+              <ModalWrapper onClose={() => setOpenModal(false)} isOpen={openModal}><InfoMeetingModal id={m.id} title={m.topic} description={m.description} ataUrl={m.ata_url} date={format(new Date(m.beginning_time), "dd/MM/yyyy")} participants={m.participants}/></ModalWrapper>
+            </div>
+          )}
+          {showJoinButton && m.join_url && (
             <button
               className="bg-[#FED353] hover:bg-[#F6A700] transition px-4 py-2 rounded-md text-base mt-auto"
               onClick={handleJoinMeeting}
@@ -175,28 +194,12 @@ export default function MeetingCard({ m, showDelete, showUpdate, showJoin, showA
               <p>Entrar na Reunião</p>
             </button>
           )}
-          {showUpdate && (
+          {showUpdateButton && (
             <button
               className="bg-[#FED353] hover:bg-[#F6A700] transition px-4 py-2 rounded-md text-base mt-auto"
               onClick={handleUpdate}
             >
               <p>Atualizar Reunião</p>
-            </button>
-          )}
-          {showAta && (
-            <button
-              className="bg-[#FED353] hover:bg-[#F6A700] transition px-4 py-2 rounded-md text-base mt-auto"
-              onClick={handleAta}
-            >
-              <p>Anexar ATA</p>
-            </button>
-          )}
-          {showDownloadAta && (
-            <button
-              className="bg-[#FED353] hover:bg-[#F6A700] transition px-4 py-2 rounded-md text-base mt-auto"
-              onClick={handleDownload}
-            >
-              <p>Baixar ATA</p>
             </button>
           )}
           {showDelete && (
