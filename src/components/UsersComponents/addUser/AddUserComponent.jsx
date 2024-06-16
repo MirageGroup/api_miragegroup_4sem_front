@@ -9,6 +9,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 
 
 export function AddUserComponent() {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const navigate = useNavigate()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -55,7 +56,7 @@ export function AddUserComponent() {
         }
 
         try{
-            await axios.post("http://localhost:8080/user/create", data).then((response) => {
+            await axios.post(`${backendUrl}/user/create`, data).then((response) => {
                 toast.success('Usuário cadastrado')
                 setName('')
                 setEmail('')

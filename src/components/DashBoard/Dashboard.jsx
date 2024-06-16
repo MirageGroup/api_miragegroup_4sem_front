@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import PageTitle from "../pageTitle/PageTitle";
 import TodayMeeting from "./TodayMeetings/todayMeeting";
-
-
+import individualMeetingForm from "../IndividualMeetingForm/individualMeetingForm";
+import IndividualMeetingForm from "../IndividualMeetingForm/individualMeetingForm";
+import { ModalWrapper } from "../wrappers/modalWrapper";
 
 const Dashboard = () => {
+
+    const [openModal, setOpenModal] = useState(false);
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get('accessToken');
 
@@ -13,13 +16,21 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="w-full text-xl standardFlex flex-col  gap-8 ">
-
-
+        <div className="text-lg lg:standardFlex flex-col gap-5">
             <PageTitle>Dashboard</PageTitle>
+            <div className="w-full flex justify-center lg:justify-start">
+
+                <button
+                    onClick={() => setOpenModal(true)}
+                    className=" bg-[#FED353] text-[#FEFEFE] transition easy-in-out hover:bg-[#F6A700] p-2 m-4 rounded-md shadow-lg w-[124px]"
+                >
+                    Criar reunião individual
+                </button>
+            </div>
             <TodayMeeting />
+            <ModalWrapper onClose={() => setOpenModal(false)} isOpen={openModal}><IndividualMeetingForm></IndividualMeetingForm></ModalWrapper>
         </div>
-    )
+    );
 }
 
-export default Dashboard
+export default Dashboard;

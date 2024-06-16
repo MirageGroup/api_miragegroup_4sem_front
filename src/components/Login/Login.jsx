@@ -19,23 +19,29 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
+    console.log(backendUrl)
+
+
     const handleLogin = async () => {
         const data = {
             email: email,
             password: password
         }
         try {
-            axios.post('http://localhost:8080/user/login', data, { withCredentials: true }).then((response) => {
+
+            
+            axios.post(`${backendUrl}/user/login`, data, { withCredentials: true }).then((response) => {
                 setToken(response.data.token)
-                window.location.href = 'http://localhost:8080/meeting/authorize';
+                window.location.href = `${backendUrl}/meeting/authorize`;
             })
         } catch (error) {
             console.error(error)
         }
     }
     return (
-        <div className="loginPage flexAlignCenter">
-            <div className="container flexAlignCenter">
+        <div className="loginPage flexAlignCenter bg-[#F6F7F7] shadow-lg">
+            <div className="container flexAlignCenter shadow-lg" >
                 <div className="videoDiv">
                     <video src={video} autoPlay muted loop></video>
                     <div className="textDiv">
@@ -43,14 +49,14 @@ const Login = () => {
                         <p>Sistemas Integrados de Alto Teor Tecnológico</p>
                     </div>
                 </div>
-                <div className="formDiv flexAlignCenter">
+                <div className="formDiv flexAlignCenter ">
                     <div className="headerDiv">
-                        <img src="/orca_logo.svg" alt="" className="h-20 w-[112px]"></img>
-                        <h3>Bem-vindo novamente!</h3>
+                        <img src="/logo2.svg" alt="" className="h-20 w-[112px]"></img>
+                        <h3 className="text-white">Bem-vindo novamente!</h3>
                     </div>
 
-                    <form action="" className="form grid">
-                        <div className="inputDiv">
+                    <form action="" className="form grid " >
+                        <div className="inputDiv ">
                             <label htmlFor="username">Email</label>
                             <div className="input flexAlignCenter">
                                 <FaUserShield className='icon' />

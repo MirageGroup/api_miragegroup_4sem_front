@@ -1,0 +1,18 @@
+.custom-arrow { /* Cor personalizada */
+  border-radius: 50%; /* Arredondar as setas */
+  width: 30px; /* Largura da seta */
+  height: 30px; /* Altura da seta */
+}
+
+.custom-arrow::before {
+  color: #262932; /* Cor do ícone da seta */
+  font-size: 20px; /* Tamanho do ícone da seta */
+}
+
+.next-arrow {
+  right: -35px; /* Posicionamento da seta direita */
+}
+
+.prev-arrow {
+  left: -35px; /* Posicionamento da seta esquerda */
+}

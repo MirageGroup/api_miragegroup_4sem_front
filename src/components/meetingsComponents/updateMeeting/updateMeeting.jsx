@@ -1,144 +1,127 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import PageTitle from "../../pageTitle/PageTitle";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import { AiOutlinePlus } from "react-icons/ai";
-import PageTitle from "../../pageTitle/PageTitle";
+import { formatISO } from "date-fns";
+import MultiSelectDropdown from "../NewMeeting/formComponents/MultiSelectDropdown";
+import TitleInput from "../NewMeeting/formComponents/TitleInput";
+import PautaInput from "../NewMeeting/formComponents/PautaInput";
+import { CategoryButtons } from "../NewMeeting/formComponents/CategoryButtons";
+import RoomInput from "../NewMeeting/formComponents/RoomInput";
+import DateTimeForm from "../NewMeeting/formComponents/DateTimeFormUpdate";
+import DescriptionForm from "../NewMeeting/formComponents/DescriptionForm";
+import DateTimeFormUpdate from "../NewMeeting/formComponents/DateTimeFormUpdate";
+import ExternalInput from "../NewMeeting/formComponents/ExternalInput";
 
 export default function UpdateMeeting() {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { meetingId } = useParams();
-  const [title , setTitle] = useState("")
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [physicalRoom, setPhysicalRoom] = useState(null);
-  const [virtualRoom, setVirtualRoom] = useState(null);
-  const [protocol, setProtocol] = useState("");
-  const [datetime, setDatetime] = useState("");
-  const [description, setDescription] = useState("");
-  const [meetingType, setMeetingType] = useState(null);
-  const [loaded, setLoaded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState();
+  const accessToken = localStorage.getItem("accessToken");
+  const [meetingData, setMeetingData] = useState({
+    selectedUsers: [],
+    physicalRoom: null,
+    virtualRoom: null,
+    accessToken: accessToken,
+    pautas: [],
+    protocol: "",
+    salas: [],
+    beginning_time: "",
+    end_time: "",
+    category: "default",
+    description: "",
+    datetime: "",
+    guests: [],
+  });
   const [users, setUsers] = useState([]);
-  const [salas, setSalas] = useState([]);
-  const [singlePauta, setSinglePauta] = useState("");
-  const [pautas, setPautas] = useState([]);
+  const [updatingMeeting, setUpdatingMeeting] = useState(false);
 
-  useEffect(() => {
-    async function fetchSalas() {
-      try {
-        const responseSalasFisicas = await axios.get(
-          "http://localhost:8080/physicalRoom/get"
-        );
-        const responseSalasVirtuais = await axios.get(
-          "http://localhost:8080/virtualRoom/get"
-        );
-
-        const responseSalasFisicasData = responseSalasFisicas.data.map(
-          (sala) => {
-            return { ...sala, type: "Fisica" };
-          }
-        );
-
-        const responseSalasVirtuaisData = responseSalasVirtuais.data.map(
-          (sala) => {
-            return { ...sala, type: "Virtual" };
-          }
-        );
-
-        const response = [
-          ...responseSalasFisicasData,
-          ...responseSalasVirtuaisData,
-        ];
-
-        setSalas(response);
-      } catch (error) {
-        console.error("Erro ao buscar salas:", error);
-      }
-    }
-    const fetchData = async () => {
-      try {
-        const userResponse = await axios.get(
-          `http://localhost:8080/meeting/get/${meetingId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + localStorage.getItem("token"),
-            },
-          }
-        );
-        const {
-          participants,
-          physicalRoom,
-          virtualRoom,
-          protocol,
-          datetime,
-          description,
-          meetingType,
-          meetingTheme,
-        } = userResponse.data;
-
-    const dateParts = datetime.split('T')[0].split('-');
-    const timeParts = datetime.split('T')[1].split(':');
-  
-    const year = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10) - 1; // Mês é baseado em zero (0-11)
-    const day = parseInt(dateParts[2], 10);
-  
-    const hours = parseInt(timeParts[0], 10);
-    const minutes = parseInt(timeParts[1], 10);
-  
-    const formattedDatetime = new Date(year, month, day, hours, minutes).toISOString().slice(0, -1)
-
-
-        setTitle(protocol);
-        setSelectedUsers(participants);
-        setPhysicalRoom(physicalRoom);
-        setVirtualRoom(virtualRoom);
-        setProtocol(protocol);
-        setDatetime(formattedDatetime);
-        setDescription(description);
-        setMeetingType(meetingType);
-        setPautas(meetingTheme);
-
-        handleCategoryChange(meetingType);
-        setPautas(meetingTheme);
-      } catch (error) {
-        console.error("Erro ao obter perfil do usuário:", error);
-      }
-    };
-
-    fetchSalas();
-    fetchData();
-    
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
+  const fetchSalas = async () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
-      axios.get("http://localhost:8080/user/fetchall").then((response) => {
-        const data = response.data;
-        setUsers(data);
-      });
+      const [responseSalasFisicas, responseSalasVirtuais] = await Promise.all([
+        axios.get(`${backendUrl}/physicalRoom/get`),
+        axios.get(`${backendUrl}/virtualRoom/get`),
+      ]);
+
+      const salas = [
+        ...responseSalasFisicas.data.map((sala) => ({
+          ...sala,
+          type: "Fisica",
+        })),
+        ...responseSalasVirtuais.data.map((sala) => ({
+          ...sala,
+          type: "Virtual",
+        })),
+      ];
+
+      setMeetingData((prevData) => ({ ...prevData, salas }));
+    } catch (error) {
+      console.error("Erro ao buscar salas:", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
+    try {
+      const response = await axios.get(`${backendUrl}/user/fetchall`);
+      setUsers(response.data);
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  };
 
-  const handleSubmit = async (event) => {
+  const getCategoryNumber = (category) => {
+    const categoryMap = { Fisica: 1, Virtual: 3, default: 2 };
+    return categoryMap[category] || categoryMap["default"];
+  };
+
+  const handleUpdateSubmit = async (
+    event,
+    meetingData,
+    meetingId,
+    setUpdatingMeeting,
+    toast
+  ) => {
     event.preventDefault();
+    setUpdatingMeeting(true);
 
+    const beginningTime = new Date(meetingData.datetime);
+    beginningTime.setDate(beginningTime.getDate() + 1);
+    const [beginningHours, beginningMinutes] =
+      meetingData.beginning_time.split(":");
+    beginningTime.setHours(parseInt(beginningHours, 10));
+    beginningTime.setMinutes(parseInt(beginningMinutes, 10));
+    beginningTime.setSeconds(0);
+
+    const endTime = new Date(meetingData.datetime);
+    endTime.setDate(endTime.getDate() + 1);
+    const [endHours, endMinutes] = meetingData.end_time.split(":");
+    endTime.setHours(parseInt(endHours, 10));
+    endTime.setMinutes(parseInt(endMinutes, 10));
+    endTime.setSeconds(0);
+
+    if (endTime <= beginningTime) {
+      endTime.setDate(endTime.getDate() + 1);
+    }
+    console.log("meetingData: ", formatISO(beginningTime));
+    const requestData = {
+      topic: meetingData.protocol,
+      description: meetingData.description,
+      beginning_time: formatISO(beginningTime),
+      end_time: formatISO(endTime),
+      meetingType: getCategoryNumber(meetingData.category),
+      physicalRoom: meetingData.physicalRoom,
+      virtualRoom: meetingData.virtualRoom,
+      participants: meetingData.selectedUsers,
+      meetingTheme: meetingData.pautas,
+      guests: meetingData.guests,
+    };
+    console.log("requestData: ", requestData);
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     try {
-      const requestData = {
-        protocol: protocol,
-        description: description,
-        datetime: datetime,
-        physicalRoom: physicalRoom,
-        virtualRoom: virtualRoom,
-        meetingType: selectedCategory,
-        participants: selectedUsers,
-        meetingTheme: pautas,
-      };
-      const response = await axios.patch(
-        `http://localhost:8080/meeting/update/${meetingId}`,
+      await axios.patch(
+        `${backendUrl}/meeting/update/${meetingId}`,
         requestData,
         { withCredentials: true }
       );
@@ -152,303 +135,194 @@ export default function UpdateMeeting() {
         progress: undefined,
         theme: "dark",
       });
-      window.location.reload();
     } catch (error) {
-      console.error("Erro ao criar reunião:", error);
+      console.error(error);
+    } finally {
+      setUpdatingMeeting(false);
     }
   };
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    if (category === 1) {
-      setVirtualRoom(null);
-    } else if (category === 3) {
-      setPhysicalRoom(null);
-    }
-  };
+  useEffect(() => {
+    fetchSalas();
+  }, []);
 
-  const handleRoomSelection = (id) => {
-    
-    if (id === "replacePhysicalRoom") {
-      setPhysicalRoom(null);
-    } else if (id === "replaceVirtualRoom") {
-      setVirtualRoom(null);
-    } else {
-      if (salas && salas.length > 0) {
-        const selectedRoom = salas.find((sala) => sala.id == id);
-        if (selectedRoom) {
-          if (selectedRoom.type === "Fisica") {
-            setPhysicalRoom(selectedRoom);
-          } else {
-            
-            setVirtualRoom(selectedRoom);
-          }
-        }
-      } else {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchMeetingData = async () => {
+      try {
+        const response = await axios.get(
+          `${backendUrl}/meeting/get/${meetingId}`
+        );
+        const {
+          participants,
+          physicalRoom,
+          virtualRoom,
+          topic,
+          datetime,
+          description,
+          meetingType,
+          meetingTheme,
+          beginning_time,
+          end_time,
+          guests
+        } = response.data;
+
+        // Formatar a data e hora
+        const formattedDate = new Date(beginning_time)
+          .toISOString()
+          .slice(0, 10);
+
+          console.log("formattedDate: ", response.data);
+
+        setMeetingData((prevData) => ({
+          ...prevData,
+          selectedUsers: participants,
+          physicalRoom: physicalRoom,
+          virtualRoom: virtualRoom,
+          pautas: meetingTheme,
+          protocol: topic,
+          beginning_time: beginning_time,
+          end_time: end_time,
+          datetime: formattedDate,
+          meetingType: meetingType,
+          guests: guests,
+          category:
+            meetingType == 1
+              ? "Fisica"
+              : meetingType == 3
+              ? "Virtual"
+              : "Hibrida",
+          description: description,
+        }));
+      } catch (error) {
+        console.error(error);
       }
-    }
+    };
+
+    fetchMeetingData();
+  }, []);
+
+  const handleChange = (dictKey, value) => {
+    setMeetingData((prevData) => ({ ...prevData, [dictKey]: value }));
+    console.log("dictKey", dictKey, "value", value);
   };
-  const handleUserSelection = (event) => {
-    const selectedUserId = event.target.value;
-    const selectedUser = users.find((user) => user.id == selectedUserId);
-
-    if (
-      selectedUser &&
-      !selectedUsers.some((user) => user.id == selectedUserId)
-    ) {
-      setSelectedUsers([...selectedUsers, selectedUser]);
-    }
-  };
-
-  const handleRemoveUser = (userId) => {
-    const newSelectedUsers = selectedUsers.filter((user) => user.id !== userId);
-    setSelectedUsers(newSelectedUsers);
-  };
-
-  const handlePautaDelete = (index) => {
-    const newPautas = [...pautas];
-    newPautas.splice(index, 1);
-    setPautas(newPautas);
-  };
-
-  if (!loaded) {
-    return null;
-  }
-
-    return (
-    <div>
-      <div className="w-full ">
-        <PageTitle>Atualizar reunião: {title}</PageTitle>
-
-        {/* Formulário de Nova Reunião */}
-        <div className="w-full flex justify-center">
-          <form
-            className="p-4 mt-4 standardFlex w-5/6 flex-col gap-8"
-            onSubmit={handleSubmit}
-          >
-            {/* PRIMEIRA LINHA */}
-            <div className="w-full flex justify-between items-center gap-32">
-              {/* TÍTULO DA REUNIÃO */}
-              <div className="standardFlex flex-col w-2/5 lg:items-start">
-                <label htmlFor="meetingName" className="text-2xl my-4">
-                  Título da Reunião
-                </label>
-                <input
-                  type="text"
-                  id="meetingName"
-                  value={protocol}
-                  className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                  onChange={(e) => setProtocol(e.target.value)}
-                />
-              </div>
-
-              {/* CATEGORIA DA REUNIÃO */}
-              <div className="standardFlex flex-col items-center lg:items-start w-2/5">
-                <label className="text-2xl my-4">Categoria da reunião</label>
-                <div className="flex gap-8">
-                  <button
-                    type="button"
-                    className={`border border-slate-400 ${
-                      selectedCategory === 1 ? "bg-[#F6A700]" : ""
-                    } p-4 rounded-md`}
-                    onClick={() => handleCategoryChange(1)}
-                  >
-                    Presencial
-                  </button>
-                  <button
-                    type="button"
-                    className={`border border-slate-400 ${
-                      selectedCategory === 2 ? "bg-[#F6A700]" : ""
-                    } p-4 rounded-md`}
-                    onClick={() => handleCategoryChange(2)}
-                  >
-                    Hibrido
-                  </button>
-                  <button
-                    type="button"
-                    className={`border border-slate-400 ${
-                      selectedCategory === 3 ? "bg-[#F6A700]" : ""
-                    } p-4 rounded-md`}
-                    onClick={() => handleCategoryChange(3)}
-                  >
-                    Virtual
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* SEGUNDA LINHA */}
-            <div className="w-full flex justify-between items-center gap-32">
-              {/* DATA DA REUNIÃO */}
-              <div className="standardFlex flex-col items-center lg:items-start w-2/5 ">
-                <label htmlFor="Data" className="text-2xl my-4">
-                  Data
-                </label>
-                <input
-                  type="datetime-local"
-                  id="Data"
-                  value={datetime}
-                  className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                  onChange={(e) => setDatetime(e.target.value)}
-                />
-              </div>
-
-              {/* DESCRIÇÃO DA REUNIÃO */}
-              <div className="standardFlex flex-col items-center lg:items-start w-2/5">
-                <label htmlFor="description" className="text-2xl my-4">
-                  Descrição
-                </label>
-                <input
-                  type="text"
-                  id="description"
-                  value={description}
-                  className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-            </div>
-            {/* TERCEIRA LINHA */}
-            <div
-              className={`w-full flex ${
-                selectedCategory === 2 ? "justify-between" : "justify-start"
-              } items-center gap-32`}
-            >
-              {selectedCategory === 1 || selectedCategory === 2 ? (
-                <div className="standardFlex flex-col items-center lg:items-start w-2/5">
-                  <label className="text-2xl my-4">Sala Física</label>
-                  <select
-                    className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                    onChange={(e) => handleRoomSelection(e.target.value)}
-                    value={
-                      physicalRoom ? physicalRoom.id : "replacePhysicalRoom"
-                    }
-                  >
-                    <option value="replacePhysicalRoom">Sala física</option>
-                    {salas &&
-                      salas.length > 0 &&
-                      salas
-                        .filter((sala) => sala.type === "Virtual")
-                        .map((sala) => (
-                          <option key={sala.id} value={sala.id}>
-                            {sala.id}
-                          </option>
-                        ))}
-                  </select>
-                </div>
-              ) : null}
-
-              {/* SALA VIRTUAL */}
-              {selectedCategory === 3 || selectedCategory === 2 ? (
-                <div className="standardFlex flex-col items-center lg:items-start w-2/5">
-                  <label className="text-2xl my-4">Sala Virtual</label>
-                  <select
-                    className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                    onChange={(e) => handleRoomSelection(e.target.value)}
-                    value={virtualRoom ? virtualRoom.id : "replaceVirtualRoom"}
-                  >
-                    <option value="replaceVirtualRoom">Sala Virtual</option>
-                    {salas
-                      .filter((sala) => sala.type === "Virtual")
-                      .map((sala) => (
-                        <option key={sala.id} value={sala.id}>
-                          {sala.id}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              ) : null}
-            </div>
-            {/* QUARTA LINHA */}
-            <div className="w-full flex justify-between items-center gap-12 min-h-40">
-              {/* USUÁRIO */}
-              <div className="standardFlex flex-col items-center lg:items-start w-2/5 min-h-40">
-                <label className="text-2xl my-4">
-                  Adicionar usuários à reunião
-                </label>
-                <select
-                  className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                  onChange={handleUserSelection}
-                >
-                  <option value="">Adicione um novo usuário</option>
-                  {users.map((user) => (
-                    <option key={user.email} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex gap-4 w-full">
-                  {selectedUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex border p-2 gap-4 justify-between rounded-lg my-2"
-                    >
-                      <p>{user.name}</p>
-                      <button onClick={() => handleRemoveUser(user.id)}>
-                        X
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* PAUTAS DA REUNIÃO */}
-              <div className="standardFlex flex-col items-center lg:items-start w-2/5 min-h-40">
-                <label className="text-2xl my-4">
-                  Adicionar pautas à reunião
-                </label>
-                <div className="w-full flex gap-4">
-                  <input
-                    placeholder="Escreva uma pauta"
-                    type="text"
-                    id="pautas"
-                    className="w-full lg:w-full p-1 border focus:border-black rounded-md bg-[#D9D9D9]"
-                    onChange={(e) => setSinglePauta(e.target.value)}
-                    value={singlePauta}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPautas([...pautas, singlePauta])}
-                    className="bg-[#FED353] transition easy-in-out hover:bg-[#F6A700] p-3 rounded-full border border-slate-400"
-                  >
-                    <AiOutlinePlus />
-                  </button>
-                </div>
-                <div className="flex gap-4 w-full">
-                  {pautas.map((pauta, index) => (
-                    <div
-                      key={index}
-                      className="flex border p-2 gap-4 justify-between rounded-lg my-2"
-                    >
-                      <p>{pauta}</p>
-                      <button type="button" onClick={() => handlePautaDelete(index)}>
-                        X
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-8 w-full flex lg:justify-end">
+  return (
+<div className="w-full h-full">
+  <PageTitle>Atualizar Reunião</PageTitle>
+  <div className="w-full">
+    <form
+      className="p-4 mt-4 lg:gap-8"
+      onSubmit={(e) =>
+        handleUpdateSubmit(
+          e,
+          meetingData,
+          meetingId,
+          setUpdatingMeeting,
+          toast
+        )
+      }
+    >
+      <div className="grid grid-cols-1 w-full justify-center items-center gap-32">
+        <TitleInput
+          title={meetingData.protocol}
+          handleChange={handleChange}
+        />
+        <DateTimeFormUpdate
+          beginning_time={meetingData.beginning_time}
+          end_time={meetingData.end_time}
+          datetime={meetingData.datetime}
+          handleChange={handleChange}
+        />
+        <div className="standardFlex flex-col lg:w-4/6 w-full items-center lg:items-start">
+          <div className="standardFlex flex-col lg:w-5/6 w-full items-center lg:items-start">
+            <label htmlFor="participants" className="text-xl my-4">
+              Adicione um novo usuário
+            </label>
+            <MultiSelectDropdown
+              options={users}
+              selectedOptions={meetingData.selectedUsers}
+              setSelectedOptions={(selected) =>
+                handleChange("selectedUsers", selected)
+              }
+              placeholder="Adicione um novo usuário"
+            />
+          </div>
+        </div>
+        <CategoryButtons
+          selectedCategory={meetingData.category}
+          handleChange={handleChange}
+        />
+        <div className="grid grid-cols-1 items-center lg:items-start lg:grid-cols-2 w-full lg:w-4/6">
+          <RoomInput
+            salas={meetingData.salas}
+            selectedCategory={meetingData.category}
+            handleChange={handleChange}
+          />
+          <PautaInput
+            handleChange={handleChange}
+            pautas={meetingData.pautas}
+          />
+        </div>
+        <div className="grid grid-cols-1 items-center lg:items-start lg:grid-cols-2 lg:w-4/6 w-full">
+          <ExternalInput guests={meetingData.guests} handleChange={handleChange} />
+        </div>
+        <div className="grid grid-cols-3 grid-rows-2 lg:w-4/6 w-full">
+          <DescriptionForm
+            description={meetingData.description}
+            handleChange={handleChange}
+          />
+          <div className="w-full flex flex-col lg:flex-row items-center lg:justify-end self-start mt-8 lg:col-span-1 lg:self-end col-span-3">
+            {!updatingMeeting ? (
               <button
                 type="submit"
-                className="bg-[#FED353] transition easy-in-out hover:bg-[#F6A700] p-3 rounded-md border border-slate-400 w-2/12"
+                className="bg-[#FED353] text-[#FEFEFE] transition ease-in-out hover:bg-[#F6A700] p-2 rounded-md shadow-lg w-[124px] mt-4 lg:mt-0 lg:ml-4"
               >
                 Atualizar
               </button>
-            </div>
-            <ToastContainer
-              position="top-center"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="dark"
-            />
-          </form>
+            ) : (
+              <div
+                role="status"
+                className="p-2 rounded-md bg-[#FED353] flex justify-center shadow-lg w-[124px] mt-4 lg:mt-0 lg:ml-4"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-6 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-black"
+                  viewBox="0 0 100 101"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                    fill="currentFill"
+                  />
+                </svg>
+                <span className="sr-only">Loading...</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+    </form>
+  </div>
+</div>
   );
 }

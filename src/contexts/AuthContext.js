@@ -6,6 +6,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [token, setToken_] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState('')
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
     
   const setToken = (newToken) => {
     setToken_(newToken);
@@ -13,7 +14,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      axios.get("http://localhost:8080/user/getprofile", {
+      axios.get(`${backendUrl}/user/getprofile`, {
         headers: {
             "Authorization": "Bearer " + token
         }

@@ -4,8 +4,10 @@ import { useAuth } from "../../../contexts/AuthContext";
 import MeetingCard from "../../Cards/MeetingCard";
 import Calendar from "../../calendar/calendar";
 import { getMeetingsByUser } from "../../../functions/meetingEndpoints";
+import MeetingCarousel from "../../carousel/MeetingCarousel";
+
 export default function TodayMeeting() {
-  const [meetings, setMeetings] = useState();
+  const [meetings, setMeetings] = useState([]);
   const [todayMeetings, setTodayMeetings] = useState([]);
   const [tipoReuniao, setTipoReuniao] = useState("Todos");
   const user = useAuth();
@@ -18,7 +20,6 @@ export default function TodayMeeting() {
     async function fetchMeetings() {
       try {
         const response = await getMeetingsByUser(user.user.id);
-        console.log("response", response);
         const todayMeetings = response.filter((meeting) => {
           const meetingDate = new Date(meeting.beginning_time);
           const today = new Date();
@@ -28,11 +29,10 @@ export default function TodayMeeting() {
             meetingDate.getFullYear() === today.getFullYear()
           );
         });
-        console.log("response", response);
         setMeetings(response);
         setTodayMeetings(todayMeetings);
       } catch (error) {
-        console.error("Erro ao buscar salas:", error);
+        console.error("Erro ao buscar reuniões:", error);
       }
     }
     if (user.user.id) {
@@ -40,32 +40,25 @@ export default function TodayMeeting() {
     }
   }, [user.user.id]);
 
-  if (meetings == undefined) {
-    console.log(meetings);
-    return <div>Loading...</div>;
+  if (meetings.length === 0) {
+    return <div>Não há reuniões criadas no momento...</div>;
   }
-  return (
-    <div className="standardFlex items-start justify-start">
-      <div className="w-[40%] px-10">
-        {/* <h1 className="text-4xl mb-10 h-4">Reuniões de hoje</h1>
 
-        <div className="standardFlex flex-col gap-4 justify-start h-[400px] overflow-y-auto">
-          {todayMeetings.length > 0 && todayMeetings !== undefined ? (
-            todayMeetings
-              .filter((m) =>
-                m.participants.some(
-                  (participant) => participant.id === user.user.id
-                )
-              )
-              .map((m) => <MeetingCard key={m.id} m={m} showDelete={false} />)
-          ) : (
-            <h1 className="text-xl">Sem Reuniões de hoje</h1>
-          )}
-        </div> */}
-        <h1 className="text-4xl mb-10">Suas Reuniões</h1>
-        <div className="gap-4 flex my-8 ">
+  const filteredMeetings = meetings.filter((m) => {
+    if (tipoReuniao === "Todos") {
+      return true;
+    } else {
+      return m.meetingType == tipoReuniao;
+    }
+  });
+
+  return (
+    <div className="standardFlex lg:flex-row flex-col justify-center h-full w-full lg:gap-0 lg:p-8 gap-14">
+      <div className="lg:w-2/5 w-full px-4 flex flex-col items-center">
+        <h1 className="text-4xl font-light mb-10">Suas Reuniões</h1>
+        <div className="gap-4 flex justify-center ">
           <select
-            className="bg-[#FED353] transition easy-in-out hover:bg-[#F6A700] p-3 rounded-md border border-slate-400 "
+            className="bg-[#FED353] transition easy-in-out hover:bg-[#F6A700] mb-5 p-3 rounded-md text-base"
             value={tipoReuniao}
             onChange={handleTipoReuniaoChange}
           >
@@ -75,21 +68,13 @@ export default function TodayMeeting() {
             <option value={3}>Virtual</option>
           </select>
         </div>
-        <div className="standardFlex flex-col gap-4 justify-start h-[600px] overflow-y-auto">
-          {meetings
-            .filter((m) => {
-              if (tipoReuniao === "Todos") {
-                return true;
-              } else if (m.meetingType == tipoReuniao) {
-                return true;
-              }
-            })
-            .map((m) => (
-              <MeetingCard m={m} key={m.id} showDelete={false} showJoin={true} />
-            ))}
+        <div className="standardFlex flex-col  w-[90%]">
+          <MeetingCarousel meetings={filteredMeetings} />
         </div>
       </div>
-      <Calendar meetingData={meetings}></Calendar>
-    </div>
+      <div className="lg:w-3/5 w-[100%] h-full lg:ml-[10rem]">
+        <Calendar meetingData={meetings} />
+      </div>
+    </div >
   );
 }

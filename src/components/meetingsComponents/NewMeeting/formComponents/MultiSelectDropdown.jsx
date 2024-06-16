@@ -24,7 +24,7 @@ const MultiSelectDropdown = ({ options, selectedOptions, setSelectedOptions, pla
     placeholder;
 
   return (
-    <div className="relative w-full lg:w-1/2 h-10 p-1 border focus:border-black rounded-md bg-[#EFEFEF] ">
+    <div className="lg:relative w-full lg:w-1/2 h-10 p-1 border focus:border-black rounded-md bg-[#EFEFEF] ">
       <div className="flex justify-between items-center cursor-pointer" onClick={handleToggle}>
         <span>{placeholderText}</span>
         {isOpen ? <AiOutlineUp /> : <AiOutlineDown />}
