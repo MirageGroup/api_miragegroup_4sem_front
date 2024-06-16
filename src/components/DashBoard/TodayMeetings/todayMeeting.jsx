@@ -41,7 +41,7 @@ export default function TodayMeeting() {
   }, [user.user.id]);
 
   if (meetings.length === 0) {
-    return <div>Loading...</div>;
+    return <div>Não há reuniões criadas no momento...</div>;
   }
 
   const filteredMeetings = meetings.filter((m) => {

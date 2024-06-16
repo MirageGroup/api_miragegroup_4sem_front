@@ -265,6 +265,7 @@ export default function NewMeeting() {
               <PautaInput
                 handleChange={handleChange}
                 pautas={meetingData.pautas}
+                
               />
             </div>
             <div className="grid grid-cols-1 items-center lg:items-start lg:grid-cols-2 lg:w-4/6 w-full ">

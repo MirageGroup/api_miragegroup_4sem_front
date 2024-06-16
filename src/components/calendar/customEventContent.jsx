@@ -6,7 +6,7 @@ const CustomEventContent = ({ event }) => {
   console.log(event)
   return (
     <div className="">
-      <div className="">
+      <div className="overflow-auto max-w-28">
         <p><strong>{event.title}</strong></p>
         <p><strong>{date.getHours()}:{date.getMinutes()} - {endDate.getHours()}:{endDate.getMinutes()}</strong></p>
         {/* Adicione mais informações conforme necessário */}
