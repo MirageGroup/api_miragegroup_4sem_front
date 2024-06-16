@@ -139,10 +139,10 @@ export default function MeetingCardDash({ m, showDelete, showUpdate, showJoin, s
   } else {
     return (
       <div
-        className="border border-gray-300 p-6 shadow-lg bg-white max-w-[16rem]"
+        className="border border-gray-300 p-6 shadow-lg bg-white max-w-[16rem] "
         key={m.nome}
       >
-        <div className="flex flex-col justify-between h-full min-h-[16rem]">
+        <div className="flex flex-col justify-between h-full min-h-[16rem] break-words">
           <div>
             <h1 className="text-2xl font-semibold mb-2">{m.topic}</h1>
             <p className="text-gray-600 mb-2 text-sm">{format(new Date(m.beginning_time), "dd/MM/yy - HH:mm")}</p>
